@@ -1,4 +1,4 @@
-version: "3.4"
+version: "3.5"
 x-environment:
   &QUICKSTART_ENVIRONMENT # These are read from .env file. The values in the .env file maybe overriden by shell envvars
   PLAID_CLIENT_ID: ${PLAID_CLIENT_ID}
@@ -7,12 +7,14 @@ x-environment:
   PLAID_COUNTRY_CODES: ${PLAID_COUNTRY_CODES}
   PLAID_REDIRECT_URI: ${PLAID_REDIRECT_URI}
   PLAID_ENV: ${PLAID_ENV}
+  REACT_APP_API_HOST: ${REACT_APP_API_HOST}
 services:
   python:
+    container_name: python
     networks:
-      - "quickstart"
+      - quickstart
     depends_on:
-      - "frontend"
+      - frontend
     build:
       context: .
       dockerfile: ./python/Dockerfile
@@ -20,13 +22,27 @@ services:
     environment:
       <<: *QUICKSTART_ENVIRONMENT
   frontend:
+    container_name: frontend
     environment:
-      - REACT_APP_API_HOST
+      <<: *QUICKSTART_ENVIRONMENT
     networks:
-      - "quickstart"
+      - quickstart
     build:
       context: .
       dockerfile: ./frontend/Dockerfile
     ports: ["3000:3000"]
+  nginx:
+    container_name: nginx
+    restart: always
+    image: nginx:latest
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+    networks:
+      - quickstart
 networks:
   quickstart:
+    name: quickstart
