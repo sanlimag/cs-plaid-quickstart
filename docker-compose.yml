@@ -25,20 +25,18 @@ services:
     container_name: frontend
     environment:
       <<: *QUICKSTART_ENVIRONMENT
-    networks:
-      - quickstart
     build:
       context: .
       dockerfile: ./frontend/Dockerfile
+    networks:
+      - quickstart
     ports: ["3000:3000"]
   nginx:
     container_name: nginx
     restart: always
     image: nginx:latest
-    build:
-      context: .
     ports:
-      - "8080:8080"
+      - "80:80"
     volumes:
       - ./nginx:/etc/nginx/conf.d
     networks:

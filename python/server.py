@@ -44,6 +44,8 @@ from flask import Flask
 from flask import render_template
 from flask import request
 from flask import jsonify
+from flask import flash
+import logging
 from datetime import datetime
 from datetime import timedelta
 import plaid
@@ -57,6 +59,7 @@ from werkzeug.wrappers import response
 load_dotenv()
 
 app = Flask(__name__)
+app.config['SECRET_KEY']='192b9bdd22ab9ed4d12e236c78afcb9a393ec15f71bbf5dc987d54727823bcbf'
 
 # Fill in your Plaid API keys - https://dashboard.plaid.com/account/keys
 PLAID_CLIENT_ID = os.getenv('PLAID_CLIENT_ID')
@@ -100,7 +103,7 @@ if PLAID_ENV == 'production':
 # that the bank website should redirect to. You will need to configure
 # this redirect URI for your client ID through the Plaid developer dashboard
 # at https://dashboard.plaid.com/team/api.
-PLAID_REDIRECT_URI = empty_to_none('PLAID_REDIRECT_URI')
+PLAID_REDIRECT_URI = 'http://localhost:3000/'
 
 configuration = plaid.Configuration(
     host=host,
@@ -210,13 +213,15 @@ def create_link_token():
                 client_user_id=str(time.time())
             )
         )
-        if PLAID_REDIRECT_URI!=None:
-            request['redirect_uri']=PLAID_REDIRECT_URI
     # create link token
         response = client.link_token_create(request)
+        app.logger.info('Link token created successfully.')
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
-         return json.loads(e.body)
+        app.logger.error('Could not retrieve link token')
+        pretty_print_response(linkResponse.to_dict())
+        raise ThreatStackRequestError(e.args)
+        return json.loads(e.body)
 
 
 # Exchange token flow - exchange a Link public_token for
@@ -234,12 +239,15 @@ def get_access_token():
         exchange_request = ItemPublicTokenExchangeRequest(
             public_token=public_token)
         exchange_response = client.item_public_token_exchange(exchange_request)
+        app.logger.info('Access token successfully retrieved')
+        pretty_print_response(exchange_response.to_dict())
         access_token = exchange_response['access_token']
         item_id = exchange_response['item_id']
         if 'transfer' in PLAID_PRODUCTS:
             transfer_id = authorize_and_create_transfer(access_token)
         return jsonify(exchange_response.to_dict())
     except plaid.ApiException as e:
+        app.log.error('Error retrieving access token')
         return json.loads(e.body)
 
 
