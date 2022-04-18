@@ -51,31 +51,69 @@ from datetime import timedelta
 import plaid
 import base64
 import os
-import datetime
 import json
 import time
 from dotenv import load_dotenv
-from werkzeug.wrappers import response
+
 load_dotenv()
 
-app = Flask(__name__)
-app.config['SECRET_KEY']='192b9bdd22ab9ed4d12e236c78afcb9a393ec15f71bbf5dc987d54727823bcbf'
+# Configure default logging
+# from logging.config import dictConfig
+#
+#
+# dictConfig({
+#    'version': 1,
+#    'formatters': {'default': {
+#        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+#    }},
+#    'handlers': {'wsgi': {
+#        'class': 'logging.StreamHandler',
+#        'stream': 'ext://flask.logging.wsgi_errors_stream',
+#        'formatter': 'default'
+#    }},
+#    'root': {
+#        'level': 'INFO',
+#        'handlers': ['wsgi']
+#    }
+# })
 
-# Fill in your Plaid API keys - https://dashboard.plaid.com/account/keys
+import json_logging
+import sys
+
+class CustomRequestJSONLog(json_logging.JSONRequestLogFormatter):
+    """
+    Customized logger
+    """
+    def _format_log_object(self, record, request_util):
+        # request and response object can be extracted from record like this
+        json_log_object = super(CustomRequestJSONLog, self)._format_log_object(record, request_util)
+
+        json_log_object.update({
+            "customized_prop": "customized value",
+            "custom_request": request.url,
+            "custom_headers": dict(request.headers)
+        })
+        return json_log_object
+
+
+app = Flask(__name__)
+app.config['SECRET_KEY'] = '192b9bdd22ab9ed4d12e236c78afcb9a393ec15f71bbf5dc987d54727823bcbf'
+
+# Init the logger
+json_logging.init_flask(enable_json=True)
+json_logging.init_request_instrument(app, exclude_url_patterns=[r'/exclude_from_request_instrumentation'],
+                                     custom_formatter=CustomRequestJSONLog,)
+
+# init the logger as usual
+logger = logging.getLogger("test logger")
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.StreamHandler(sys.stdout))
+
+# Env variables
 PLAID_CLIENT_ID = os.getenv('PLAID_CLIENT_ID')
 PLAID_SECRET = os.getenv('PLAID_SECRET')
-# Use 'sandbox' to test with Plaid's Sandbox environment (username: user_good,
-# password: pass_good)
-# Use `development` to test with live users and credentials and `production`
-# to go live
 PLAID_ENV = os.getenv('PLAID_ENV', 'sandbox')
-# PLAID_PRODUCTS is a comma-separated list of products to use when initializing
-# Link. Note that this list must contain 'assets' in order for the app to be
-# able to create and retrieve asset reports.
 PLAID_PRODUCTS = os.getenv('PLAID_PRODUCTS', 'transactions').split(',')
-
-# PLAID_COUNTRY_CODES is a comma-separated list of countries for which users
-# will be able to select institutions from.
 PLAID_COUNTRY_CODES = os.getenv('PLAID_COUNTRY_CODES', 'US').split(',')
 
 
@@ -85,24 +123,12 @@ def empty_to_none(field):
         return None
     return value
 
+
 host = plaid.Environment.Sandbox
 
 if PLAID_ENV == 'sandbox':
     host = plaid.Environment.Sandbox
 
-if PLAID_ENV == 'development':
-    host = plaid.Environment.Development
-
-if PLAID_ENV == 'production':
-    host = plaid.Environment.Production
-
-# Parameters used for the OAuth redirect Link flow.
-#
-# Set PLAID_REDIRECT_URI to 'http://localhost:3000/'
-# The OAuth redirect flow requires an endpoint on the developer's website
-# that the bank website should redirect to. You will need to configure
-# this redirect URI for your client ID through the Plaid developer dashboard
-# at https://dashboard.plaid.com/team/api.
 PLAID_REDIRECT_URI = 'http://localhost:3000/'
 
 configuration = plaid.Configuration(
@@ -121,19 +147,9 @@ products = []
 for product in PLAID_PRODUCTS:
     products.append(Products(product))
 
-
-# We store the access_token in memory - in production, store it in a secure
-# persistent data store.
 access_token = None
-# The payment_id is only relevant for the UK Payment Initiation product.
-# We store the payment_id in memory - in production, store it in a secure
-# persistent data store.
 payment_id = None
-# The transfer_id is only relevant for Transfer ACH product.
-# We store the transfer_id in memomory - in produciton, store it in a secure
-# persistent data store
 transfer_id = None
-
 item_id = None
 
 
@@ -192,8 +208,8 @@ def create_link_token_for_payment():
             )
         )
 
-        if PLAID_REDIRECT_URI!=None:
-            linkRequest['redirect_uri']=PLAID_REDIRECT_URI
+        if PLAID_REDIRECT_URI != None:
+            linkRequest['redirect_uri'] = PLAID_REDIRECT_URI
         linkResponse = client.link_token_create(linkRequest)
         pretty_print_response(linkResponse.to_dict())
         return jsonify(linkResponse.to_dict())
@@ -213,7 +229,7 @@ def create_link_token():
                 client_user_id=str(time.time())
             )
         )
-    # create link token
+        # create link token
         response = client.link_token_create(request)
         app.logger.info('Link token created successfully.')
         return jsonify(response.to_dict())
@@ -258,12 +274,12 @@ def get_access_token():
 @app.route('/api/auth', methods=['GET'])
 def get_auth():
     try:
-       request = AuthGetRequest(
+        request = AuthGetRequest(
             access_token=access_token
         )
-       response = client.auth_get(request)
-       pretty_print_response(response.to_dict())
-       return jsonify(response.to_dict())
+        response = client.auth_get(request)
+        pretty_print_response(response.to_dict())
+        return jsonify(response.to_dict())
     except plaid.ApiException as e:
         error_response = format_error(e)
         return jsonify(error_response)
@@ -404,7 +420,7 @@ def get_assets():
         return jsonify(error_response)
     if asset_report_json is None:
         return jsonify({'error': {'status_code': e.status, 'display_message':
-                                  'Timed out when polling for Asset Report', 'error_code': '', 'error_type': ''}})
+            'Timed out when polling for Asset Report', 'error_code': '', 'error_type': ''}})
 
     asset_report_pdf = None
     try:
@@ -466,6 +482,7 @@ def get_investments_transactions():
         error_response = format_error(e)
         return jsonify(error_response)
 
+
 # This functionality is only relevant for the ACH Transfer product.
 # Retrieve Transfer for a specified Transfer ID
 
@@ -521,13 +538,16 @@ def item():
         error_response = format_error(e)
         return jsonify(error_response)
 
+
 def pretty_print_response(response):
-  print(json.dumps(response, indent=2, sort_keys=True, default=str))
+    print(json.dumps(response, indent=2, sort_keys=True, default=str))
+
 
 def format_error(e):
     response = json.loads(e.body)
     return {'error': {'status_code': e.status, 'display_message':
-                      response['error_message'], 'error_code': response['error_code'], 'error_type': response['error_type']}}
+        response['error_message'], 'error_code': response['error_code'], 'error_type': response['error_type']}}
+
 
 # This is a helper function to authorize and create a Transfer after successful
 # exchange of a public_token for an access_token. The transfer_id is then used
@@ -592,6 +612,11 @@ def authorize_and_create_transfer(access_token):
     except plaid.ApiException as e:
         error_response = format_error(e)
         return jsonify(error_response)
+
+
+#@app.before_request
+#def logging_before_request_func():
+#    logger.info(f'Test log statement')
 
 
 if __name__ == '__main__':

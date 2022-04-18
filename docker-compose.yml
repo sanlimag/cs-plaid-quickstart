@@ -8,9 +8,10 @@ x-environment:
   PLAID_REDIRECT_URI: ${PLAID_REDIRECT_URI}
   PLAID_ENV: ${PLAID_ENV}
   REACT_APP_API_HOST: ${REACT_APP_API_HOST}
+  FLASK_ENV: ${FLASK_ENV}
 services:
-  python:
-    container_name: python
+  server:
+    container_name: server
     networks:
       - quickstart
     depends_on:
@@ -22,12 +23,9 @@ services:
     environment:
       <<: *QUICKSTART_ENVIRONMENT
   frontend:
-    container_name: frontend
+    image: sanlimag/cs-fintech-frontend:1.0
     environment:
       <<: *QUICKSTART_ENVIRONMENT
-    build:
-      context: .
-      dockerfile: ./frontend/Dockerfile
     networks:
       - quickstart
     ports: ["3000:3000"]
