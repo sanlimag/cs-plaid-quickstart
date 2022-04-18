@@ -1,6 +1,3 @@
-# source /Users/tnappy/node_projects/quickstart/python/bin/activate
-# Read env vars from .env file
-from plaid.exceptions import ApiException
 from plaid.model.payment_amount import PaymentAmount
 from plaid.model.payment_amount_currency import PaymentAmountCurrency
 from plaid.model.products import Products
@@ -41,11 +38,10 @@ from plaid.model.transfer_create_idempotency_key import TransferCreateIdempotenc
 from plaid.model.transfer_user_address_in_request import TransferUserAddressInRequest
 from plaid.api import plaid_api
 from flask import Flask
-from flask import render_template
 from flask import request
 from flask import jsonify
-from flask import flash
-from datetime import datetime, timezone
+import datetime
+from datetime import timezone, timedelta
 import plaid
 import base64
 import os
@@ -194,7 +190,7 @@ def create_link_token_for_payment():
         response = client.payment_initiation_payment_create(
             request
         )
-        pretty_print_response(response.to_dict())
+        #pretty_print_response(response.to_dict())
         payment_id = response['payment_id']
         linkRequest = LinkTokenCreateRequest(
             products=[Products('payment_initiation')],
@@ -212,7 +208,7 @@ def create_link_token_for_payment():
         if PLAID_REDIRECT_URI != None:
             linkRequest['redirect_uri'] = PLAID_REDIRECT_URI
         linkResponse = client.link_token_create(linkRequest)
-        pretty_print_response(linkResponse.to_dict())
+        #pretty_print_response(linkResponse.to_dict())
         return jsonify(linkResponse.to_dict())
     except plaid.ApiException as e:
         return json.loads(e.body)
@@ -232,12 +228,12 @@ def create_link_token():
         )
         # create link token
         response = client.link_token_create(request)
-        app.logger.info('Link token created successfully.')
+        #app.logger.info('Link token created successfully.')
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
-        app.logger.error('Could not retrieve link token')
-        pretty_print_response(linkResponse.to_dict())
-        raise ThreatStackRequestError(e.args)
+        #app.logger.error('Could not retrieve link token')
+        #pretty_print_response(linkResponse.to_dict())
+        #raise ThreatStackRequestError(e.args)
         return json.loads(e.body)
 
 
@@ -256,15 +252,15 @@ def get_access_token():
         exchange_request = ItemPublicTokenExchangeRequest(
             public_token=public_token)
         exchange_response = client.item_public_token_exchange(exchange_request)
-        app.logger.info('Access token successfully retrieved')
-        pretty_print_response(exchange_response.to_dict())
+        #app.logger.info('Access token successfully retrieved')
+        #pretty_print_response(exchange_response.to_dict())
         access_token = exchange_response['access_token']
         item_id = exchange_response['item_id']
         if 'transfer' in PLAID_PRODUCTS:
             transfer_id = authorize_and_create_transfer(access_token)
         return jsonify(exchange_response.to_dict())
     except plaid.ApiException as e:
-        app.log.error('Error retrieving access token')
+        #app.log.error('Error retrieving access token')
         return json.loads(e.body)
 
 
@@ -279,7 +275,7 @@ def get_auth():
             access_token=access_token
         )
         response = client.auth_get(request)
-        pretty_print_response(response.to_dict())
+        #pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
         error_response = format_error(e)
@@ -304,7 +300,7 @@ def get_transactions():
             options=options
         )
         response = client.transactions_get(request)
-        pretty_print_response(response.to_dict())
+        #pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
         error_response = format_error(e)
@@ -322,7 +318,7 @@ def get_identity():
             access_token=access_token
         )
         response = client.identity_get(request)
-        pretty_print_response(response.to_dict())
+        #pretty_print_response(response.to_dict())
         return jsonify(
             {'error': None, 'identity': response.to_dict()['accounts']})
     except plaid.ApiException as e:
@@ -341,7 +337,7 @@ def get_balance():
             access_token=access_token
         )
         response = client.accounts_balance_get(request)
-        pretty_print_response(response.to_dict())
+        #pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
         error_response = format_error(e)
@@ -359,7 +355,7 @@ def get_accounts():
             access_token=access_token
         )
         response = client.accounts_get(request)
-        pretty_print_response(response.to_dict())
+        #pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
         error_response = format_error(e)
@@ -394,7 +390,7 @@ def get_assets():
         )
 
         response = client.asset_report_create(request)
-        pretty_print_response(response.to_dict())
+        #pretty_print_response(response.to_dict())
         asset_report_token = response['asset_report_token']
     except plaid.ApiException as e:
         error_response = format_error(e)
@@ -448,7 +444,7 @@ def get_holdings():
     try:
         request = InvestmentsHoldingsGetRequest(access_token=access_token)
         response = client.investments_holdings_get(request)
-        pretty_print_response(response.to_dict())
+        #pretty_print_response(response.to_dict())
         return jsonify({'error': None, 'holdings': response.to_dict()})
     except plaid.ApiException as e:
         error_response = format_error(e)
@@ -475,7 +471,7 @@ def get_investments_transactions():
         )
         response = client.investments_transactions_get(
             request)
-        pretty_print_response(response.to_dict())
+        #pretty_print_response(response.to_dict())
         return jsonify(
             {'error': None, 'investment_transactions': response.to_dict()})
 
@@ -493,7 +489,7 @@ def transfer():
     try:
         request = TransferGetRequest(transfer_id=transfer_id)
         response = client.transfer_get(request)
-        pretty_print_response(response.to_dict())
+        #pretty_print_response(response.to_dict())
         return jsonify({'error': None, 'transfer': response['transfer'].to_dict()})
     except plaid.ApiException as e:
         error_response = format_error(e)
@@ -510,7 +506,7 @@ def payment():
     try:
         request = PaymentInitiationPaymentGetRequest(payment_id=payment_id)
         response = client.payment_initiation_payment_get(request)
-        pretty_print_response(response.to_dict())
+        #pretty_print_response(response.to_dict())
         return jsonify({'error': None, 'payment': response.to_dict()})
     except plaid.ApiException as e:
         error_response = format_error(e)
@@ -531,8 +527,8 @@ def item():
             country_codes=list(map(lambda x: CountryCode(x), PLAID_COUNTRY_CODES))
         )
         institution_response = client.institutions_get_by_id(request)
-        pretty_print_response(response.to_dict())
-        pretty_print_response(institution_response.to_dict())
+        #pretty_print_response(response.to_dict())
+        #pretty_print_response(institution_response.to_dict())
         return jsonify({'error': None, 'item': response.to_dict()[
             'item'], 'institution': institution_response.to_dict()['institution']})
     except plaid.ApiException as e:
@@ -582,7 +578,7 @@ def authorize_and_create_transfer(access_token):
             ),
         )
         response = client.transfer_authorization_create(request)
-        pretty_print_response(response)
+        #pretty_print_response(response)
         authorization_id = response['authorization']['id']
 
         request = TransferCreateRequest(
@@ -608,7 +604,7 @@ def authorize_and_create_transfer(access_token):
             ),
         )
         response = client.transfer_create(request)
-        pretty_print_response(response)
+        #pretty_print_response(response)
         return response['transfer']['id']
     except plaid.ApiException as e:
         error_response = format_error(e)
@@ -616,7 +612,7 @@ def authorize_and_create_transfer(access_token):
 
 @app.before_request
 def logging_before_request_func():
-    timestamp = datetime.now(timezone.utc)
+    timestamp = datetime.datetime.now(timezone.utc)
     url = request.url
     host = request.host
     #headers = []
@@ -625,4 +621,4 @@ def logging_before_request_func():
     app.logger.info(f'{timestamp} {host} {url}')
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=s.getenv('PORT', 8000))
+    app.run(host="0.0.0.0", port=os.getenv('PORT', 8000))
