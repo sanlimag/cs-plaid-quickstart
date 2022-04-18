@@ -45,9 +45,7 @@ from flask import render_template
 from flask import request
 from flask import jsonify
 from flask import flash
-import logging
-from datetime import datetime
-from datetime import timedelta
+from datetime import datetime, timezone
 import plaid
 import base64
 import os
@@ -57,57 +55,60 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Configure default logging
-# from logging.config import dictConfig
+import logging
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
+
+from logging.config import dictConfig
+
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '%(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
+
+
+#import json_logging
+#import sys
 #
+#class CustomRequestJSONLog(json_logging.JSONRequestLogFormatter):
+#    """
+#    Customized logger
+#    """
+#    def _format_log_object(self, record, request_util):
+#        # request and response object can be extracted from record like this
+#        json_log_object = super(CustomRequestJSONLog, self)._format_log_object(record, request_util)
 #
-# dictConfig({
-#    'version': 1,
-#    'formatters': {'default': {
-#        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-#    }},
-#    'handlers': {'wsgi': {
-#        'class': 'logging.StreamHandler',
-#        'stream': 'ext://flask.logging.wsgi_errors_stream',
-#        'formatter': 'default'
-#    }},
-#    'root': {
-#        'level': 'INFO',
-#        'handlers': ['wsgi']
-#    }
-# })
-
-import json_logging
-import sys
-
-class CustomRequestJSONLog(json_logging.JSONRequestLogFormatter):
-    """
-    Customized logger
-    """
-    def _format_log_object(self, record, request_util):
-        # request and response object can be extracted from record like this
-        json_log_object = super(CustomRequestJSONLog, self)._format_log_object(record, request_util)
-
-        json_log_object.update({
-            "customized_prop": "customized value",
-            "custom_request": request.url,
-            "custom_headers": dict(request.headers)
-        })
-        return json_log_object
+#        json_log_object.update({
+#            "customized_prop": "customized value",
+#            "custom_request": request.url,
+#            "custom_headers": dict(request.headers)
+#        })
+#        return json_log_object
 
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '192b9bdd22ab9ed4d12e236c78afcb9a393ec15f71bbf5dc987d54727823bcbf'
 
-# Init the logger
-json_logging.init_flask(enable_json=True)
-json_logging.init_request_instrument(app, exclude_url_patterns=[r'/exclude_from_request_instrumentation'],
-                                     custom_formatter=CustomRequestJSONLog,)
-
-# init the logger as usual
-logger = logging.getLogger("test logger")
-logger.setLevel(logging.DEBUG)
-logger.addHandler(logging.StreamHandler(sys.stdout))
+# Init the JSON logger
+#json_logging.init_flask(enable_json=True)
+#json_logging.init_request_instrument(app, exclude_url_patterns=[r'/exclude_from_request_instrumentation'],
+#                                     custom_formatter=CustomRequestJSONLog,)
+#
+## init the logger as usual
+#logger = logging.getLogger("test logger")
+#logger.setLevel(logging.DEBUG)
+#logger.addHandler(logging.StreamHandler(sys.stdout))
 
 # Env variables
 PLAID_CLIENT_ID = os.getenv('PLAID_CLIENT_ID')
@@ -613,11 +614,15 @@ def authorize_and_create_transfer(access_token):
         error_response = format_error(e)
         return jsonify(error_response)
 
-
-#@app.before_request
-#def logging_before_request_func():
-#    logger.info(f'Test log statement')
-
+@app.before_request
+def logging_before_request_func():
+    timestamp = datetime.now(timezone.utc)
+    url = request.url
+    host = request.host
+    #headers = []
+    #for k,v in request.headers:
+    #    headers.append({k,v})
+    app.logger.info(f'{timestamp} {host} {url}')
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=os.getenv('PORT', 8000))
+    app.run(host="0.0.0.0", port=s.getenv('PORT', 8000))
