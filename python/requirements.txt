@@ -1,5 +1,5 @@
 Flask
 plaid_python
 python-dotenv
-itsdangerous==2.0.1
+itsdangerous
 json-logging

@@ -53,7 +53,7 @@ load_dotenv()
 
 import logging
 log = logging.getLogger('werkzeug')
-log.setLevel(logging.ERROR)
+log.setLevel(logging.INFO)
 
 from logging.config import dictConfig
 
@@ -149,6 +149,10 @@ payment_id = None
 transfer_id = None
 item_id = None
 
+
+@app.route('/api/test', methods=['GET'])
+def test():
+    return 'API test OK!'
 
 @app.route('/api/info', methods=['POST'])
 def info():
@@ -610,15 +614,17 @@ def authorize_and_create_transfer(access_token):
         error_response = format_error(e)
         return jsonify(error_response)
 
+
 @app.before_request
 def logging_before_request_func():
-    timestamp = datetime.datetime.now(timezone.utc)
-    url = request.url
-    host = request.host
+    client_ip = request.headers.get('X-Forwarded-For')
+    url = request.host_url
+    path = request.full_path
     #headers = []
     #for k,v in request.headers:
     #    headers.append({k,v})
-    app.logger.info(f'{timestamp} {host} {url}')
+    #app.logger.info(f'{client_ip} {url} {path} {headers}')
+    app.logger.info(f'{client_ip} {url} {path}')
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=os.getenv('PORT', 8000))
