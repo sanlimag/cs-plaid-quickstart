@@ -624,7 +624,7 @@ def logging_before_request_func():
     #for k,v in request.headers:
     #    headers.append({k,v})
     #app.logger.info(f'{client_ip} {url} {path} {headers}')
-    app.logger.info(f'["client_ip": "{client_ip},"url": "{url}","path": "{path}"]')
+    app.logger.info(f'[{{"client_ip": "{client_ip}"}},{{"url": "{url}"}},{{"path": "{path}"}}]')
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=os.getenv('PORT', 8000))
