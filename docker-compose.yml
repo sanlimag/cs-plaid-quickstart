@@ -21,6 +21,10 @@ services:
     ports: ["8000:8000"]
     environment:
       <<: *QUICKSTART_ENVIRONMENT
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
   frontend:
     image: sanlimag/cs-fintech-frontend:1.0
     environment:
