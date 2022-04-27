@@ -1,3 +1,4 @@
+import flask.globals
 from plaid.model.payment_amount import PaymentAmount
 from plaid.model.payment_amount_currency import PaymentAmountCurrency
 from plaid.model.products import Products
@@ -231,7 +232,7 @@ def create_link_token():
         )
         # create link token
         response = client.link_token_create(request)
-        #app.logger.info('Link token created successfully.')
+        app.logger.info()
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
         #app.logger.error('Could not retrieve link token')
@@ -623,7 +624,7 @@ def logging_before_request_func():
     client_ip = request.headers.get('X-Forwarded-For')
     user_agent = request.headers.get('User-Agent')
     app.logger.info(f'{{"timestamp": "{timestamp}","host": "{host}","url": "{url}","path": "{path}"}}')
-    #app.logger.info(f'{{"timestamp": "{timestamp}","host": "{host}","url": "{url}","path": "{path}","client_ip": "{client_ip}","user_agent": "{user_agent}"}}')
+    app.logger.info(f'{{"timestamp": "{timestamp}","host": "{host}","url": "{url}","path": "{path}","client_ip": "{client_ip}","user_agent": "{user_agent}"}}')
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=os.getenv('PORT', 8000))
