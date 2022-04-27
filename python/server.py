@@ -52,8 +52,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import logging
-log = logging.getLogger('werkzeug')
-log.setLevel(logging.INFO)
+log = logging.getLogger('werkzeug').disabled = True
+logging.getLogger('werkzeug').setLevel(logging.FATAL)
 
 from logging.config import dictConfig
 
@@ -72,7 +72,6 @@ dictConfig({
         'handlers': ['wsgi']
     }
 })
-
 
 #import json_logging
 #import sys
@@ -617,14 +616,14 @@ def authorize_and_create_transfer(access_token):
 
 @app.before_request
 def logging_before_request_func():
+    timestamp = datetime.datetime.now(timezone.utc)
+    host = request.headers.get('Host')
+    url = request.base_url
+    path = request.path
     client_ip = request.headers.get('X-Forwarded-For')
-    url = request.host_url
-    path = request.full_path
-    #headers = []
-    #for k,v in request.headers:
-    #    headers.append({k,v})
-    #app.logger.info(f'{client_ip} {url} {path} {headers}')
-    app.logger.info(f'{{"client_ip": "{client_ip}"}},{{"url": "{url}"}},{{"path": "{path}"}}')
+    user_agent = request.headers.get('User-Agent')
+    app.logger.info(f'{{"timestamp": "{timestamp}","host": "{host}","url": "{url}","path": "{path}"}}')
+    #app.logger.info(f'{{"timestamp": "{timestamp}","host": "{host}","url": "{url}","path": "{path}","client_ip": "{client_ip}","user_agent": "{user_agent}"}}')
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=os.getenv('PORT', 8000))
