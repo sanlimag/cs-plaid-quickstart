@@ -232,7 +232,6 @@ def create_link_token():
         )
         # create link token
         response = client.link_token_create(request)
-        app.logger.info()
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
         #app.logger.error('Could not retrieve link token')
