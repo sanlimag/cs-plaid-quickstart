@@ -16,7 +16,9 @@ services:
       context: ./fluent-bit
     networks:
       - quickstart
-    ports: ["24224:24224"]
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
   server:
     container_name: server
     networks:
@@ -30,10 +32,8 @@ services:
     ports: ["8000:8000"]
     environment:
       <<: *QUICKSTART_ENVIRONMENT
-        #    logging:
-        #      driver: "fluentd"
-        #      options:
-        #        fluentd-address: fluent-bit:24224
+    logging:
+      driver: "fluentd"
   frontend:
     image: sanlimag/cs-fintech-frontend:1.0
     environment:
@@ -43,6 +43,8 @@ services:
     ports: ["3000:3000"]
     depends_on:
       - fluentbit
+    logging:
+      driver: "fluentd"
   nginx:
     container_name: nginx
     restart: always
@@ -57,6 +59,8 @@ services:
       - fluentbit
       - server
       - frontend
+    logging:
+      driver: "fluentd"
 networks:
   quickstart:
     name: quickstart
