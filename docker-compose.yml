@@ -47,12 +47,10 @@ services:
       driver: "fluentd"
   nginx:
     container_name: nginx
-    restart: always
-    image: nginx:latest
+    build:
+      context: ./nginx
     ports:
       - "80:80"
-    volumes:
-      - ./nginx:/etc/nginx/conf.d
     networks:
       - quickstart
     depends_on:
