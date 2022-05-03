@@ -52,9 +52,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-import logging
-log = logging.getLogger('werkzeug').disabled = True
-logging.getLogger('werkzeug').setLevel(logging.FATAL)
+#import logging
+#log = logging.getLogger('werkzeug').disabled = True
+#logging.getLogger('werkzeug').setLevel(logging.FATAL)
 
 from logging.config import dictConfig
 
@@ -65,7 +65,8 @@ dictConfig({
     }},
     'handlers': {'wsgi': {
         'class': 'logging.StreamHandler',
-        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'stream': 'ext://sys.stdout',
+        #'stream': 'ext://flask.logging.wsgi_errors_stream',
         'formatter': 'default'
     }},
     'root': {
