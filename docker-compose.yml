@@ -37,6 +37,9 @@ services:
   frontend:
     container_name: frontend
     image: sanlimag/cs-fintech-frontend:1.0
+    build:
+      context: .
+      dockerfile: ./frontend/Dockerfile
     environment:
       <<: *QUICKSTART_ENVIRONMENT
     networks:
