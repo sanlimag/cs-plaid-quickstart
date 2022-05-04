@@ -52,10 +52,6 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-#import logging
-#log = logging.getLogger('werkzeug').disabled = True
-#logging.getLogger('werkzeug').setLevel(logging.FATAL)
-
 from logging.config import dictConfig
 
 dictConfig({
@@ -75,37 +71,8 @@ dictConfig({
     }
 })
 
-#import json_logging
-#import sys
-#
-#class CustomRequestJSONLog(json_logging.JSONRequestLogFormatter):
-#    """
-#    Customized logger
-#    """
-#    def _format_log_object(self, record, request_util):
-#        # request and response object can be extracted from record like this
-#        json_log_object = super(CustomRequestJSONLog, self)._format_log_object(record, request_util)
-#
-#        json_log_object.update({
-#            "customized_prop": "customized value",
-#            "custom_request": request.url,
-#            "custom_headers": dict(request.headers)
-#        })
-#        return json_log_object
-
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '192b9bdd22ab9ed4d12e236c78afcb9a393ec15f71bbf5dc987d54727823bcbf'
-
-# Init the JSON logger
-#json_logging.init_flask(enable_json=True)
-#json_logging.init_request_instrument(app, exclude_url_patterns=[r'/exclude_from_request_instrumentation'],
-#                                     custom_formatter=CustomRequestJSONLog,)
-#
-## init the logger as usual
-#logger = logging.getLogger("test logger")
-#logger.setLevel(logging.DEBUG)
-#logger.addHandler(logging.StreamHandler(sys.stdout))
 
 # Env variables
 PLAID_CLIENT_ID = os.getenv('PLAID_CLIENT_ID')
@@ -153,7 +120,7 @@ item_id = None
 
 @app.route('/api/test', methods=['GET'])
 def test():
-    return 'API test OK!'
+    return 'API Test OK!'
 
 @app.route('/api/info', methods=['POST'])
 def info():
@@ -235,8 +202,8 @@ def create_link_token():
         response = client.link_token_create(request)
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
-        #app.logger.error('Could not retrieve link token')
-        #pretty_print_response(linkResponse.to_dict())
+        app.logger.error('Could not retrieve link token')
+        pretty_print_response(linkResponse.to_dict())
         #raise ThreatStackRequestError(e.args)
         return json.loads(e.body)
 
@@ -256,15 +223,15 @@ def get_access_token():
         exchange_request = ItemPublicTokenExchangeRequest(
             public_token=public_token)
         exchange_response = client.item_public_token_exchange(exchange_request)
-        #app.logger.info('Access token successfully retrieved')
-        #pretty_print_response(exchange_response.to_dict())
+        app.logger.info('Access token successfully retrieved')
         access_token = exchange_response['access_token']
         item_id = exchange_response['item_id']
         if 'transfer' in PLAID_PRODUCTS:
             transfer_id = authorize_and_create_transfer(access_token)
         return jsonify(exchange_response.to_dict())
     except plaid.ApiException as e:
-        #app.log.error('Error retrieving access token')
+        app.log.error('Error retrieving access token')
+         pretty_print_response(exchange_response.to_dict())
         return json.loads(e.body)
 
 
@@ -623,8 +590,8 @@ def logging_before_request_func():
     path = request.path
     client_ip = request.headers.get('X-Forwarded-For')
     user_agent = request.headers.get('User-Agent')
-    app.logger.info(f'{{"host": "{host}","url": "{url}","path": "{path}"}}')
-    #app.logger.info(f'{{"host": "{host}","url": "{url}","path": "{path}","client_ip": "{client_ip}","user_agent": "{user_agent}"}}')
+    #app.logger.info(f'{{"host": "{host}","url": "{url}","path": "{path}"}}')
+    app.logger.info(f'{{"host": "{host}","url": "{url}","path": "{path}","client_ip": "{client_ip}","user_agent": "{user_agent}"}}')
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=os.getenv('PORT', 8000))
