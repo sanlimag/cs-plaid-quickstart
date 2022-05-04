@@ -52,6 +52,10 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+import logging
+log = logging.getLogger('werkzeug').disabled = True
+logging.getLogger('werkzeug').setLevel(logging.CRITICAL)
+
 from logging.config import dictConfig
 
 dictConfig({
