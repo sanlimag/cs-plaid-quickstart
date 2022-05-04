@@ -231,7 +231,7 @@ def get_access_token():
         return jsonify(exchange_response.to_dict())
     except plaid.ApiException as e:
         app.log.error('Error retrieving access token')
-         pretty_print_response(exchange_response.to_dict())
+        pretty_print_response(exchange_response.to_dict())
         return json.loads(e.body)
 
 
