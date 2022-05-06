@@ -18,6 +18,7 @@ usage() {
 SERVER_IP=
 CERT_PATH=
 APP_VERSION=
+RESET=
 
 while getopts i:c:v: opt
 do
@@ -25,6 +26,7 @@ do
     i) SERVER_IP=$OPTARG;;
     c) CERT_PATH=$OPTARG;;
     v) APP_VERSION=$OPTARG;;
+    r) RESET=$OPTARG;;
   esac
 done
 
@@ -37,27 +39,30 @@ then
   clear
   echo "Deploying v1"
   ssh -tt -i $CERT_PATH ubuntu@$SERVER_IP << EOF
-    cd fintech-demo
-    git fetch
-    git reset --hard origin/master
-    git checkout master
-    sudo docker-compose down && sudo docker-compose up --build -d
-    exit
+  cd fintech-demo
+  git fetch
+  git reset --hard origin/master
+  git checkout master
+  sudo docker-compose down && sudo docker-compose up --build -d
+  exit
 EOF
+  sleep 10
   echo "---------------------------------------------------------------------------"
-  echo "Application $APP_VERSION deployed. You can access it on http://$SERVER_IP"
+  echo "Application $APP_VERSION deployed. Wait a few seconds and it will be available on http://$SERVER_IP"
 elif [ $APP_VERSION = 2 ]
 then
   clear
   echo "Deploying v2"
   ssh -tt -i $CERT_PATH ubuntu@$SERVER_IP <<EOF
-    cd fintech-demo
-    git checkout ext_logging
-    sudo docker-compose down && sudo docker-compose up --build -d
-    exit
+  cd fintech-demo
+  git checkout ext_logging
+  git reset --hard origin/ext_logging
+  sudo docker-compose down && sudo docker-compose up --build -d
+  exit
 EOF
+  sleep 10
   echo "---------------------------------------------------------------------------"
-  echo "Application $APP_VERSION deployed. You can access it on http://$SERVER_IP"
+  echo "Application $APP_VERSION deployed. Wait a few seconds and it will be available on http://$SERVER_IP"
 else
-  echo "Application version must be 1 or 2"
+  echo "Error: Application version MUST be 1 or 2"
 fi
