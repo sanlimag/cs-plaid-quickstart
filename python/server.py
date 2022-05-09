@@ -594,8 +594,8 @@ def logging_before_request_func():
     path = request.path
     client_ip = request.headers.get('X-Forwarded-For')
     user_agent = request.headers.get('User-Agent')
-    #app.logger.info(f'{{"host": "{host}","url": "{url}","path": "{path}"}}')
-    app.logger.info(f'{{"host": "{host}","url": "{url}","path": "{path}","client_ip": "{client_ip}","user_agent": "{user_agent}"}}')
+    app.logger.info(f'{{"host": "{host}","url": "{url}","path": "{path}"}}')
+    #app.logger.info(f'{{"host": "{host}","url": "{url}","path": "{path}","client_ip": "{client_ip}","user_agent": "{user_agent}"}}')
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=os.getenv('PORT', 8000))
