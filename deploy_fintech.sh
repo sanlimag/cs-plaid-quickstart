@@ -34,11 +34,13 @@ if [[ -z "$SERVER_IP" ]] || [[ -z "$CERT_PATH" ]] || [[ -z "$APP_VERSION" ]]; th
   usage
 fi
 
+connection=true
+
 if [ $APP_VERSION = 1 ]
 then
   clear
   echo "Deploying v1"
-  ssh -tt -i $CERT_PATH ubuntu@$SERVER_IP << EOF
+  ssh -tt -o ConnectTimeout=5 -i $CERT_PATH ubuntu@$SERVER_IP << EOF || connection=false
   cd fintech-demo
   git fetch
   git reset --hard origin/master
@@ -46,23 +48,28 @@ then
   sudo docker-compose down && sudo docker-compose up --build -d
   exit
 EOF
-  sleep 10
-  echo "---------------------------------------------------------------------------"
-  echo "Application $APP_VERSION deployed. Wait a few seconds and it will be available on http://$SERVER_IP"
 elif [ $APP_VERSION = 2 ]
 then
   clear
   echo "Deploying v2"
-  ssh -tt -i $CERT_PATH ubuntu@$SERVER_IP <<EOF
+  ssh -tt -o ConnectTimeout=5 -i $CERT_PATH ubuntu@$SERVER_IP << EOF || connection=false
   cd fintech-demo
   git checkout ext_logging
   git reset --hard origin/ext_logging
   sudo docker-compose down && sudo docker-compose up --build -d
   exit
 EOF
-  sleep 10
-  echo "---------------------------------------------------------------------------"
-  echo "Application $APP_VERSION deployed. Wait a few seconds and it will be available on http://$SERVER_IP"
 else
   echo "Error: Application version MUST be 1 or 2"
+fi
+
+if [ $connection = true ]
+then
+  echo "============================================================================"
+  echo "Finishing deploying application.Please wait a few seconds..."
+  sleep 10
+  echo "Application $APP_VERSION deployed: http://$SERVER_IP"
+else
+  echo "============================================================================"
+  echo "ERROR: Deployment server not available. Please check connection and try again."
 fi

@@ -589,12 +589,12 @@ def authorize_and_create_transfer(access_token):
 @app.before_request
 def logging_before_request_func():
     #timestamp = datetime.datetime.now(timezone.utc)
-    host = request.headers.get('Host')
-    url = request.base_url
-    path = request.path
-    client_ip = request.headers.get('X-Forwarded-For')
-    user_agent = request.headers.get('User-Agent')
-    app.logger.info(f'{{"host": "{host}","url": "{url}","path": "{path}"}}')
+    #host = request.headers.get('Host')
+    #url = request.base_url
+    #path = request.path
+    #client_ip = request.headers.get('X-Forwarded-For')
+    #user_agent = request.headers.get('User-Agent')
+    #app.logger.info(f'{{"host": "{host}","url": "{url}","path": "{path}"}}')
     #app.logger.info(f'{{"host": "{host}","url": "{url}","path": "{path}","client_ip": "{client_ip}","user_agent": "{user_agent}"}}')
 
 if __name__ == '__main__':
