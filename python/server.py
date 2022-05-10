@@ -204,9 +204,10 @@ def create_link_token():
         )
         # create link token
         response = client.link_token_create(request)
+        app.logger.info(f'Link token successfully created.')
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
-        app.logger.error('Could not retrieve link token')
+        app.logger.error(f'Could not create link token.')
         pretty_print_response(linkResponse.to_dict())
         #raise ThreatStackRequestError(e.args)
         return json.loads(e.body)
@@ -275,6 +276,7 @@ def get_transactions():
             options=options
         )
         response = client.transactions_get(request)
+        app.logger.info(f'Transactions information successfully retrieved.')
         #pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
@@ -330,6 +332,7 @@ def get_accounts():
             access_token=access_token
         )
         response = client.accounts_get(request)
+        app.logger.info(f'Account information successfully retrieved.')
         #pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
@@ -586,8 +589,9 @@ def authorize_and_create_transfer(access_token):
         return jsonify(error_response)
 
 
-#@app.before_request
-#def logging_before_request_func():
+@app.before_request
+def logging_before_request_func():
+    request.headers.get('')
 #    timestamp = datetime.datetime.now(timezone.utc)
 #    host = request.headers.get('Host')
 #    url = request.base_url

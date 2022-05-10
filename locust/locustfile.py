@@ -28,6 +28,7 @@ class QuickstartUser(HttpUser):
         self.client.get("api/accounts")
         self.client.get("api/transactions")
         self.client.get("api/balance")
+        self.client.post("api/get_link_token")
 
     @task(1)
     def gen_errors(self):
