@@ -254,6 +254,7 @@ def get_auth():
         #pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
+        app.logger.error(f'Error: Access token missing on the request. Request ID: {request_id}')
         error_response = format_error(e)
         return jsonify(error_response)
 
@@ -520,7 +521,7 @@ def pretty_print_response(response):
 
 def format_error(e):
     response = json.loads(e.body)
-    return {'error': {'status_code': e.status, 'display_message':
+    return {'error': {'request_id': request_id, 'status_code': e.status, 'display_message':
         response['error_message'], 'error_code': response['error_code'], 'error_type': response['error_type']}}
 
 
@@ -589,9 +590,17 @@ def authorize_and_create_transfer(access_token):
         return jsonify(error_response)
 
 
+@app.errorhandler(404)
+# inbuilt function which takes error as parameter
+def not_found(e):
+    # defining function
+    #request_id = request.headers.get('X-Request-Id')
+    #app.logger.error(f'Error: API endpoint not available. Request ID: {request_id}')
+    return "API endpoint not available"
+
 @app.before_request
 def logging_before_request_func():
-    request.headers.get('')
+    request_id = request.headers.get('X-Request-Id')
 #    timestamp = datetime.datetime.now(timezone.utc)
 #    host = request.headers.get('Host')
 #    url = request.base_url
