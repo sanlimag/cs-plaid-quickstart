@@ -586,8 +586,8 @@ def authorize_and_create_transfer(access_token):
         return jsonify(error_response)
 
 
-@app.before_request
-def logging_before_request_func():
+#@app.before_request
+#def logging_before_request_func():
     #timestamp = datetime.datetime.now(timezone.utc)
     #host = request.headers.get('Host')
     #url = request.base_url
