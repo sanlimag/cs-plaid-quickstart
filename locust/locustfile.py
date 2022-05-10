@@ -36,3 +36,4 @@ class QuickstartUser(HttpUser):
         self.client.get("api/error")
         self.client.get("static")
         self.client.get("info")
+        self.client.get("test")
