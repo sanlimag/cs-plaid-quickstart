@@ -206,7 +206,7 @@ def create_link_token():
         response = client.link_token_create(request)
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
-        app.logger.error('Could not retrieve link token')
+        app.logger.error(f'Error: Could not retrieve link token. Request_id={request_id}')
         pretty_print_response(linkResponse.to_dict())
         #raise ThreatStackRequestError(e.args)
         return json.loads(e.body)
@@ -234,7 +234,7 @@ def get_access_token():
             transfer_id = authorize_and_create_transfer(access_token)
         return jsonify(exchange_response.to_dict())
     except plaid.ApiException as e:
-        app.log.error('Error retrieving access token')
+        app.log.error(f'Error: Failure retrieving access token. Request ID: {request_id}')
         pretty_print_response(exchange_response.to_dict())
         return json.loads(e.body)
 
@@ -278,6 +278,7 @@ def get_transactions():
         #pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
+        app.logger.error(f'Error: Could not retrieve transactions. Request_id={request_id}')
         error_response = format_error(e)
         return jsonify(error_response)
 
@@ -315,6 +316,7 @@ def get_balance():
         #pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
+        app.logger.error(f'Error: Could not retrieve accounts balance information. Request_id={request_id}')
         error_response = format_error(e)
         return jsonify(error_response)
 
@@ -333,6 +335,7 @@ def get_accounts():
         #pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
+        app.logger.error(f'Error: Could not retrieve account information. Request_id={request_id}')
         error_response = format_error(e)
         return jsonify(error_response)
 
