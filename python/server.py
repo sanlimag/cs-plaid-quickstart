@@ -592,6 +592,7 @@ def authorize_and_create_transfer(access_token):
 @app.before_request
 def logging_before_request_func():
     #timestamp = datetime.datetime.now(timezone.utc)
+    global request_id
     request_id = request.headers.get('X-Request-Id')
     #host = request.headers.get('Host')
     #url = request.base_url
