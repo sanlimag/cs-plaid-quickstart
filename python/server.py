@@ -206,7 +206,7 @@ def create_link_token():
         response = client.link_token_create(request)
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
-        app.logger.error(f'Error: Could not retrieve link token. Request_id={request_id}')
+        app.logger.error(f'{request_id} Error: Could not retrieve link token.')
         pretty_print_response(linkResponse.to_dict())
         #raise ThreatStackRequestError(e.args)
         return json.loads(e.body)
@@ -234,7 +234,7 @@ def get_access_token():
             transfer_id = authorize_and_create_transfer(access_token)
         return jsonify(exchange_response.to_dict())
     except plaid.ApiException as e:
-        app.log.error(f'Error: Failure retrieving access token. Request ID: {request_id}')
+        app.log.error(f'{request_id} Error: Failure retrieving access token.')
         pretty_print_response(exchange_response.to_dict())
         return json.loads(e.body)
 
@@ -278,7 +278,7 @@ def get_transactions():
         #pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
-        app.logger.error(f'Error: Could not retrieve transactions. Request_id={request_id}')
+        app.logger.error(f'{request_id} Error: Could not retrieve transactions.')
         error_response = format_error(e)
         return jsonify(error_response)
 
@@ -316,7 +316,7 @@ def get_balance():
         #pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
-        app.logger.error(f'Error: Could not retrieve accounts balance information. Request_id={request_id}')
+        app.logger.error(f'{request_id} Error: Could not retrieve accounts balance information.')
         error_response = format_error(e)
         return jsonify(error_response)
 
@@ -335,7 +335,7 @@ def get_accounts():
         #pretty_print_response(response.to_dict())
         return jsonify(response.to_dict())
     except plaid.ApiException as e:
-        app.logger.error(f'Error: Could not retrieve account information. Request_id={request_id}')
+        app.logger.error(f'{request_id} Error: Could not retrieve account information.')
         error_response = format_error(e)
         return jsonify(error_response)
 
@@ -520,7 +520,7 @@ def pretty_print_response(response):
 
 def format_error(e):
     response = json.loads(e.body)
-    return {'error': {'request_id': request_id, 'status_code': e.status, 'display_message':
+    return {'request_id': request_id, 'error': {'status_code': e.status, 'display_message':
         response['error_message'], 'error_code': response['error_code'], 'error_type': response['error_type']}}
 
 
@@ -593,7 +593,7 @@ def authorize_and_create_transfer(access_token):
 def not_found(e):
     # defining function
     request_id = request.headers.get('X-Request-Id')
-    app.logger.error(f'Error: API endpoint not available. Request ID: {request_id}')
+    app.logger.error(f'{request_id} Error: API endpoint not available.')
     return "API endpoint not available"
 
 @app.before_request
