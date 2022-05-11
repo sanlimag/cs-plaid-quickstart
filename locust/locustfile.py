@@ -20,7 +20,7 @@ class QuickstartUser(HttpUser):
         self.headers = {"User-Agent": USER_AGENTS[random.randint(0,len(USER_AGENTS)-1)]}
         self.client.headers = self.headers
 
-    @task(3)
+    @task(10)
     def load_page(self):
         self.client.get("")
         self.client.post("api/info")
@@ -34,7 +34,3 @@ class QuickstartUser(HttpUser):
     def gen_errors(self):
         self.client.post("api/auth")
         self.client.get("api/info")
-        self.client.get("api/error")
-        self.client.get("static")
-        self.client.get("info")
-        self.client.get("test")
