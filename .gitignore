@@ -52,3 +52,9 @@ docker-compose.local*.yml
 
 #vscode
 .vscode
+
+#locust
+locust*
+
+#cleanup artifacts
+containers.txt
