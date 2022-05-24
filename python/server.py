@@ -594,12 +594,13 @@ def authorize_and_create_transfer(access_token):
 # inbuilt function which takes error as parameter
 def not_found(e):
     # defining function
-    #request_id = request.headers.get('X-Request-Id')
-    #app.logger.error(f'Error: API endpoint not available. Request ID: {request_id}')
+    request_id = request.headers.get('X-Request-Id')
+    app.logger.error(f'Error: API endpoint not available. Request ID: {request_id}')
     return "API endpoint not available"
 
 @app.before_request
 def logging_before_request_func():
+    global request_id
     request_id = request.headers.get('X-Request-Id')
 #    timestamp = datetime.datetime.now(timezone.utc)
 #    host = request.headers.get('Host')
